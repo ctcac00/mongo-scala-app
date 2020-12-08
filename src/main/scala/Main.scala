@@ -1,0 +1,76 @@
+package main.scala
+
+import org.mongodb.scala._
+import org.mongodb.scala.model.Aggregates._
+import org.mongodb.scala.model.Filters._
+import org.mongodb.scala.model.Projections._
+import org.mongodb.scala.model.Sorts._
+import org.mongodb.scala.model.Updates._
+import org.mongodb.scala.model._
+import com.mongodb.connection._
+
+import java.util.concurrent.TimeUnit
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
+import scala.collection.JavaConverters._
+
+object Main extends App {
+
+  implicit class DocumentObservable[C](val observable: Observable[Document])
+      extends ImplicitObservable[Document] {
+    override val converter: (Document) => String = (doc) => doc.toJson
+  }
+
+  implicit class GenericObservable[C](val observable: Observable[C])
+      extends ImplicitObservable[C] {
+    override val converter: (C) => String = (doc) =>
+      Option(doc).map(_.toString).getOrElse("")
+  }
+
+  trait ImplicitObservable[C] {
+    val observable: Observable[C]
+    val converter: (C) => String
+
+    def results(): Seq[C] =
+      Await.result(observable.toFuture(), Duration(10, TimeUnit.SECONDS))
+    def headResult() =
+      Await.result(observable.head(), Duration(10, TimeUnit.SECONDS))
+    def printResults(initial: String = ""): Unit = {
+      if (initial.length > 0) print(initial)
+      results().foreach(res => println(converter(res)))
+    }
+    def printHeadResult(initial: String = ""): Unit = println(
+      s"${initial}${converter(headResult())}"
+    )
+  }
+
+  println("Connecting to MongoDB...")
+
+  val mongoClient: MongoClient = MongoClient(
+    MongoClientSettings
+      .builder()
+      .writeConcern(WriteConcern.UNACKNOWLEDGED)
+      .applyToClusterSettings((builder: ClusterSettings.Builder) =>
+        builder.hosts(List(new ServerAddress("localhost", 27017)).asJava)
+      )
+      .build()
+  )
+
+  val database: MongoDatabase = mongoClient.getDatabase("test")
+  val collection: MongoCollection[Document] = database.getCollection("test")
+
+  val doc: Document = Document(
+    "name" -> "MongoDB",
+    "type" -> "database",
+    "count" -> 1,
+    "info" -> Document("x" -> 203, "y" -> 102)
+  )
+
+  println("Inserting document...")
+  collection.insertOne(doc)
+
+  println("Reading documents...")
+  collection.find().printResults()
+}
