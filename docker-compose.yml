@@ -1,0 +1,56 @@
+version: "3.6"
+volumes:
+  rs1:
+  rs2:
+  rs3:
+
+services:
+  # MongoDB Replica Set
+  mongo1:
+    image: "mongo:latest"
+    container_name: mongo1
+    command: --replSet rs0 --bind_ip 0.0.0.0
+    volumes:
+      - rs1:/data/db
+    networks:
+      - localnet
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+  mongo2:
+    image: "mongo:latest"
+    container_name: mongo2
+    command: --replSet rs0 --bind_ip 0.0.0.0
+    volumes:
+      - rs2:/data/db
+    networks:
+      - localnet
+    ports:
+      - "27018:27017"
+    restart: unless-stopped
+  mongo3:
+    image: "mongo:latest"
+    container_name: mongo3
+    command: --replSet rs0 --bind_ip 0.0.0.0
+    volumes:
+      - rs3:/data/db
+    networks:
+      - localnet
+    ports:
+      - "27019:27017"
+    restart: unless-stopped
+  
+  app:
+    image: "scala-test-app:1.0"
+    container_name: app
+    networks:
+      - localnet  
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+    restart: unless-stopped
+
+networks:
+    localnet:
+        attachable: true

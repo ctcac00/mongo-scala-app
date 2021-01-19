@@ -30,8 +30,20 @@ brew install sbt
 
 ## Run
 
-Run the app with SBT:
+Start the docker containers:
 
 ```bash
-sbt run
+./run.sh
+```
+
+Check the app logs:
+
+```bash
+docker logs -f app
+```
+
+Stop a mongodb node:
+
+```bash
+docker stop mongo1
 ```

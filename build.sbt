@@ -13,7 +13,7 @@ scalaVersion := "2.13.3"
 
 // It's possible to define many kinds of settings, such as:
 
-name := "hello-world"
+name := "scala-test-app"
 organization := "ch.epfl.scala"
 version := "1.0"
 
@@ -26,7 +26,9 @@ version := "1.0"
 // You can define other libraries as dependencies in your build like this:
 
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2"
-libraryDependencies += "org.mongodb.scala" %% "mongo-scala-driver" % "4.1.1"
+libraryDependencies += "org.mongodb.scala" %% "mongo-scala-driver" % "4.1.0"
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"  
+
 // Here, `libraryDependencies` is a set of dependencies, and by using `+=`,
 // we're adding the scala-parser-combinators dependency to the set of dependencies
 // that sbt will go and fetch when it starts up.
@@ -75,3 +77,7 @@ libraryDependencies += "org.mongodb.scala" %% "mongo-scala-driver" % "4.1.1"
 
 // To learn more about multi-project builds, head over to the official sbt
 // documentation at http://www.scala-sbt.org/documentation.html
+mainClass in Compile := Some("main.scala.Main")
+
+enablePlugins(JavaAppPackaging)
+enablePlugins(DockerPlugin)

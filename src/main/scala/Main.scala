@@ -51,9 +51,15 @@ object Main extends App {
   val mongoClient: MongoClient = MongoClient(
     MongoClientSettings
       .builder()
-      .writeConcern(WriteConcern.UNACKNOWLEDGED)
+      .writeConcern(WriteConcern.MAJORITY)
       .applyToClusterSettings((builder: ClusterSettings.Builder) =>
-        builder.hosts(List(new ServerAddress("localhost", 27017)).asJava)
+        builder.hosts(
+          List(
+            new ServerAddress("mongo1", 27017),
+            new ServerAddress("mongo2", 27017),
+            new ServerAddress("mongo3", 27017)
+          ).asJava
+        )
       )
       .build()
   )
@@ -68,8 +74,11 @@ object Main extends App {
     "info" -> Document("x" -> 203, "y" -> 102)
   )
 
-  println("Inserting document...")
-  collection.insertOne(doc)
+  while(true) {
+    println("Inserting document...")
+    collection.insertOne(doc).printResults()
+    Thread.sleep(100) // wait for 100 millisecond
+  }
 
   println("Reading documents...")
   collection.find().printResults()
